@@ -1,0 +1,6 @@
+{
+  "_xpath": "//div[@id='search']//div[@class='rc']",
+  "Url": ".//div[@class='r']/a",
+  "Text": ".//div[@class='s']//span/text()",
+  "_forceArray": true
+}
