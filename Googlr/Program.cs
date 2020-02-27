@@ -1,42 +1,21 @@
 ﻿namespace Googlr
 {
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
 
     using ColoredConsole;
 
-    using Microsoft.Extensions.DependencyInjection;
-
     internal class Program
     {
-        private static ServiceProvider serviceProvider;
-
-        private static readonly char[] Separators = new[] { '?', '/', ':', '-' };
-
-        private static Parser parser;
-
-        internal static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            try
-            {
-                Utils.SetLogger();
-                serviceProvider = new ServiceCollection().ConfigureAndGetServiceProvider();
-
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
-
-                parser = new Parser();
-                StartAsync(args?.FirstOrDefault()).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                ex.LogError().GetAwaiter().GetResult();
-            }
-            finally
-            {
-                ColorConsole.WriteLine("DONE!".White().OnDarkGreen());
-                Console.ReadLine();
-            }
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            await StartAsync();
+            ColorConsole.WriteLine("DONE!".White().OnDarkGreen());
+            Console.ReadLine();
         }
 
         private static void PrintHelp()
@@ -44,44 +23,64 @@
             ColorConsole.WriteLine(
                 new[]
                 {
-                        "\n--------------------------------------------------------------".Green(),
-                        "\nEnter your search-term",
-                        "\nEnter ", "c".Green(), " to clear the console",
-                        "\nEnter ", "q".Green(), " to quit",
-                        "\nEnter ", "?".Green(), " to print this help"
+                    "\n--------------------------------------------------------------".Green(),
+                    "\nEnter your search-term",
+                    "\nEnter ", "c".Green(), " to clear the console",
+                    "\nEnter ", "q".Green(), " to quit",
+                    "\nEnter ", "?".Green(), " to print this help"
                 });
         }
 
-        private static async Task StartAsync(string connectionString = null)
+        private static async Task StartAsync()
         {
-            Utils.Log(messages: new[] { "Hey ", $"{Utils.UserName}".Green(), "!" });
+            var parser = new Parser();
+            var results = new List<(string link, string title, string summary)>();
+            ColorConsole.WriteLine("Hey ", $"{Utils.UserName}".Green(), "!");
             PrintHelp();
             do
             {
                 ColorConsole.Write("\n> ".Green());
-                var command = Console.ReadLine()?.Trim();
-                if (string.IsNullOrWhiteSpace(command))
+                var key = Console.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(key))
                 {
                     continue;
                 }
-                else if (command.Equals("q", StringComparison.OrdinalIgnoreCase) || command.StartsWith("quit", StringComparison.OrdinalIgnoreCase) || command.StartsWith("exit", StringComparison.OrdinalIgnoreCase) || command.StartsWith("close", StringComparison.OrdinalIgnoreCase))
+                else if (key.Equals("q", StringComparison.OrdinalIgnoreCase) || key.StartsWith("quit", StringComparison.OrdinalIgnoreCase) || key.StartsWith("exit", StringComparison.OrdinalIgnoreCase) || key.StartsWith("close", StringComparison.OrdinalIgnoreCase))
                 {
                     break;
                 }
-                else if (command.Equals("?") || command.StartsWith("help", StringComparison.OrdinalIgnoreCase))
+                else if (key.Equals("?") || key.StartsWith("help", StringComparison.OrdinalIgnoreCase))
                 {
                     PrintHelp();
                 }
-                else if (command.Equals("c", StringComparison.OrdinalIgnoreCase) || command.StartsWith("cls", StringComparison.OrdinalIgnoreCase) || command.StartsWith("clear", StringComparison.OrdinalIgnoreCase))
+                else if (key.Equals("c", StringComparison.OrdinalIgnoreCase) || key.StartsWith("cls", StringComparison.OrdinalIgnoreCase) || key.StartsWith("clear", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.Clear();
                 }
                 else
                 {
-                    var results = await parser.GetSearchResults(command);
-                    foreach (var result in results)
+                    try
                     {
-                        ColorConsole.WriteLine(result);
+                        var indexSearch = key.Replace(" ", ".");
+                        if (int.TryParse(indexSearch, out var index))
+                        {
+                            // https://github.com/dotnet/runtime/issues/28005
+                            Process.Start(new ProcessStartInfo { FileName = results[index].link, UseShellExecute = true });
+                        }
+                        else
+                        {
+                            results = await parser.GetSearchResults(key);
+                            foreach (var result in results.Select((value, i) => new { index = i + 1, value }))
+                            {
+                                ColorConsole.WriteLine("\n", result.index.ToString().PadLeft(3).Green(), ". ", result.value.title.Black().OnWhite());
+                                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.link.Blue());
+                                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.summary);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await ex.LogError();
                     }
                 }
             }
