@@ -24,7 +24,8 @@
                 new[]
                 {
                     "\n--------------------------------------------------------------".Green(),
-                    "\nEnter your search-term",
+                    "\nEnter the ", "search-phrase".Green(),
+                    "\nEnter the ", "index".Green(), " to open the corresponding link",
                     "\nEnter ", "c".Green(), " to clear the console",
                     "\nEnter ", "q".Green(), " to quit",
                     "\nEnter ", "?".Green(), " to print this help"
@@ -65,7 +66,7 @@
                         if (int.TryParse(indexSearch, out var index))
                         {
                             // https://github.com/dotnet/runtime/issues/28005
-                            Process.Start(new ProcessStartInfo { FileName = results[index].link, UseShellExecute = true });
+                            Process.Start(new ProcessStartInfo { FileName = results[index - 1].link, UseShellExecute = true });
                         }
                         else
                         {
