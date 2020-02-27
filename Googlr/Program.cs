@@ -91,8 +91,25 @@
                             var indexSearch = searchTerm.Replace(Space, ".");
                             if (int.TryParse(indexSearch, out var index)) // Index
                             {
-                                // https://github.com/dotnet/runtime/issues/28005
-                                Process.Start(new ProcessStartInfo { FileName = results[index - 1].Link, UseShellExecute = true });
+                                var paras = await parser.GetSummary(results[index - 1].Link);
+                                if (paras != null)
+                                {
+                                    foreach (var para in paras)
+                                    {
+                                        ColorConsole.WriteLine("\n", string.Empty.PadLeft(5), para);
+                                    }
+
+                                    ColorConsole.Write("\n", string.Empty.PadLeft(5), "Press ".Green(), "o", " to open the link".Green(), ": ");
+                                    if (Console.ReadKey().Key == ConsoleKey.O)
+                                    {
+                                        Process.Start(new ProcessStartInfo { FileName = results[index - 1].Link, UseShellExecute = true });
+                                    }
+                                }
+                                else
+                                {
+                                    // https://github.com/dotnet/runtime/issues/28005
+                                    Process.Start(new ProcessStartInfo { FileName = results[index - 1].Link, UseShellExecute = true });
+                                }
                             }
                             else // Search
                             {

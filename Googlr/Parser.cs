@@ -1,6 +1,7 @@
 ﻿namespace Googlr
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using System.Web;
     using System.Xml.XPath;
@@ -35,10 +36,24 @@
             return results;
         }
 
-        internal async Task<List<SearchInfo>> GetResults(string searchUrl, dynamic config, string linkPrefix = "")
+        internal async Task<List<string>> GetSummary(string url)
         {
             var web = new HtmlWeb();
-            var doc = web.Load(searchUrl);
+            web.PreRequest = request =>
+            {
+                request.AllowAutoRedirect = true;
+                request.MaximumAutomaticRedirections = 2;
+                return true;
+            };
+            var doc = await web.LoadFromWebAsync(url);
+            var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(" ")?.Length >= 10).Select(p => p.InnerText?.Trim()).ToList();
+            return results;
+        }
+
+        private async Task<List<SearchInfo>> GetResults(string searchUrl, dynamic config, string linkPrefix = "")
+        {
+            var web = new HtmlWeb();
+            var doc = await web.LoadFromWebAsync(searchUrl);
             HtmlNodeCollection rows = doc.DocumentNode.SelectNodes(config.Main);
             var results = new List<SearchInfo>();
             foreach (var row in rows)
