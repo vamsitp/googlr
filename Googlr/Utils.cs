@@ -38,7 +38,7 @@
                 {
                     try
                     {
-                        var vex = await fex.Call?.Response?.GetJsonAsync<JObject>();
+                        var vex = await fex.GetResponseJsonAsync<JObject>();
                         message = vex?.SelectToken("..message")?.Value<string>() ?? vex?.SelectToken("..Message")?.Value<string>() ?? e.Message;
                     }
                     catch
