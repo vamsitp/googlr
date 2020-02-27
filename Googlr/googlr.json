@@ -1,0 +1,15 @@
+{
+  "Search": {
+    "SearchUrl": "http://google.com/search?q=",
+    "Main": "//div[@id='search']//div[@class='rc']",
+    "Title": ".//a",
+    "Summary": ".//div/span"
+  },
+  "News": {
+    "SearchUrl": "http://news.google.com/search?q=",
+    "Main": "//main//article",
+    "Title": "./h3/a",
+    "Summary": "./div[1]/span",
+    "Time": ".//time"
+  }
+}

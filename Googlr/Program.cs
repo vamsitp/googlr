@@ -10,6 +10,8 @@
 
     internal class Program
     {
+        private static readonly char[] Separators = new[] { '?', '/', ':', '-' };
+
         public static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -25,6 +27,7 @@
                 {
                     "\n--------------------------------------------------------------".Green(),
                     "\nEnter the ", "search-phrase".Green(),
+                    "\nEnter ", "n/".Green(), " followed by the ", "search-phrase".Green(), " for news topics",
                     "\nEnter the ", "index".Green(), " to open the corresponding link",
                     "\nEnter ", "c".Green(), " to clear the console",
                     "\nEnter ", "q".Green(), " to quit",
@@ -35,7 +38,7 @@
         private static async Task StartAsync()
         {
             var parser = new Parser();
-            var results = new List<(string link, string title, string summary)>();
+            var results = new List<SearchInfo>();
             ColorConsole.WriteLine("Hey ", $"{Utils.UserName}".Green(), "!");
             PrintHelp();
             do
@@ -62,20 +65,25 @@
                 {
                     try
                     {
-                        var indexSearch = key.Replace(" ", ".");
-                        if (int.TryParse(indexSearch, out var index))
+                        var split = key.Split(Separators, 2);
+                        var searchTerm = split.LastOrDefault()?.Trim();
+                        if (split.Length > 1) // News
                         {
-                            // https://github.com/dotnet/runtime/issues/28005
-                            Process.Start(new ProcessStartInfo { FileName = results[index - 1].link, UseShellExecute = true });
+                            results = await parser.GetNewsResults(searchTerm);
+                            PrintResults(results);
                         }
                         else
                         {
-                            results = await parser.GetSearchResults(key);
-                            foreach (var result in results.Select((value, i) => new { index = i + 1, value }))
+                            var indexSearch = searchTerm.Replace(" ", ".");
+                            if (int.TryParse(indexSearch, out var index)) // Index
                             {
-                                ColorConsole.WriteLine("\n", result.index.ToString().PadLeft(3).Green(), ". ", result.value.title.Black().OnWhite());
-                                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.link.Blue());
-                                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.summary);
+                                // https://github.com/dotnet/runtime/issues/28005
+                                Process.Start(new ProcessStartInfo { FileName = results[index - 1].Link, UseShellExecute = true });
+                            }
+                            else // Search
+                            {
+                                results = await parser.GetSearchResults(searchTerm);
+                                PrintResults(results);
                             }
                         }
                     }
@@ -86,6 +94,16 @@
                 }
             }
             while (true);
+        }
+
+        private static void PrintResults(List<SearchInfo> results)
+        {
+            foreach (var result in results.Select((value, i) => new { index = i + 1, value }))
+            {
+                ColorConsole.WriteLine("\n", result.index.ToString().PadLeft(3).Green(), ". ", result.value.Title.Black().OnWhite());
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.Link.Blue());
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.Time.White().OnGreen(), " ", result.value.Summary);
+            }
         }
     }
 }
