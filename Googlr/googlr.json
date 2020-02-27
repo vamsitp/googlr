@@ -3,7 +3,8 @@
     "SearchUrl": "http://google.com/search?q=",
     "Main": "//div[@id='search']//div[@class='rc']",
     "Title": ".//a",
-    "Summary": ".//div/span"
+    "Summary": ".//div/span",
+    "Time": ""
   },
   "News": {
     "SearchUrl": "http://news.google.com/search?q=",

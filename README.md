@@ -7,7 +7,8 @@ Cmd-line Google search for Windows! (Inspired from [Googler for Linux](https://g
 
 `googlr`
 
-- Enter the `search-phrase`
+- Enter the `search-phrase` for general Search
+- Enter `/` followed by the `search-phrase` for News-search
 - Enter the `index` to open the corresponding link (in default browser)
 - Enter `c` to clear the console
 - Enter `q` to quit

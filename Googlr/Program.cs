@@ -10,7 +10,11 @@
 
     internal class Program
     {
-        private static readonly char[] Separators = new[] { '?', '/', ':', '-' };
+        private const int Batchsize = 10;
+        private const string Space = " ";
+
+        private static readonly char[] Separators = new[] { '/', '-' };
+        private static string continuationkey = null;
 
         public static async Task Main(string[] args)
         {
@@ -25,9 +29,9 @@
             ColorConsole.WriteLine(
                 new[]
                 {
-                    "\n--------------------------------------------------------------".Green(),
-                    "\nEnter the ", "search-phrase".Green(),
-                    "\nEnter ", "n/".Green(), " followed by the ", "search-phrase".Green(), " for news topics",
+                    "--------------------------------------------------------------".Green(),
+                    "\nEnter the ", "search-phrase".Green(), " for general Search",
+                    "\nEnter ", "/".Green(), " followed by the ", "search-phrase".Green(), " for News-search",
                     "\nEnter the ", "index".Green(), " to open the corresponding link",
                     "\nEnter ", "c".Green(), " to clear the console",
                     "\nEnter ", "q".Green(), " to quit",
@@ -38,13 +42,23 @@
         private static async Task StartAsync()
         {
             var parser = new Parser();
+            await parser.Init();
+
             var results = new List<SearchInfo>();
             ColorConsole.WriteLine("Hey ", $"{Utils.UserName}".Green(), "!");
             PrintHelp();
             do
             {
-                ColorConsole.Write("\n> ".Green());
-                var key = Console.ReadLine()?.Trim();
+                // If key was typed during Continue...
+                var key = continuationkey;
+                continuationkey = null;
+
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    ColorConsole.Write("\n> ".Green());
+                    key = Console.ReadLine()?.Trim();
+                }
+
                 if (string.IsNullOrWhiteSpace(key))
                 {
                     continue;
@@ -74,7 +88,7 @@
                         }
                         else
                         {
-                            var indexSearch = searchTerm.Replace(" ", ".");
+                            var indexSearch = searchTerm.Replace(Space, ".");
                             if (int.TryParse(indexSearch, out var index)) // Index
                             {
                                 // https://github.com/dotnet/runtime/issues/28005
@@ -82,7 +96,7 @@
                             }
                             else // Search
                             {
-                                results = await parser.GetSearchResults(searchTerm);
+                                results = await parser.GetSearchResults(searchTerm.Trim(Separators));
                                 PrintResults(results);
                             }
                         }
@@ -98,12 +112,41 @@
 
         private static void PrintResults(List<SearchInfo> results)
         {
-            foreach (var result in results.Select((value, i) => new { index = i + 1, value }))
+            // Credit: https://stackoverflow.com/a/51197184
+            var index = 0;
+            if (results.Count > Batchsize)
             {
-                ColorConsole.WriteLine("\n", result.index.ToString().PadLeft(3).Green(), ". ", result.value.Title.Black().OnWhite());
-                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.Link.Blue());
-                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.value.Time.White().OnGreen(), " ", result.value.Summary);
+                for (int i = 0; i < Math.Ceiling((decimal)results.Count / Batchsize); i++)
+                {
+                    var batch = results.Skip(i * Batchsize).Take(Batchsize);
+                    index = Iterate(index, batch);
+                    Console.WriteLine("\nContinue...");
+
+                    var input = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(input))
+                    {
+                        continuationkey = input;
+                        break;
+                    }
+                }
             }
+            else
+            {
+                Iterate(index, results);
+            }
+        }
+
+        private static int Iterate(int index, IEnumerable<SearchInfo> batch)
+        {
+            foreach (var result in batch)
+            {
+                index++;
+                ColorConsole.WriteLine("\n", index.ToString().PadLeft(3).Green(), ". ", result.Title.Black().OnWhite());
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.Link.Blue());
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.Time.White().OnGreen(), string.IsNullOrWhiteSpace(result.Time) ? string.Empty : Space, result.Summary);
+            }
+
+            return index;
         }
     }
 }
