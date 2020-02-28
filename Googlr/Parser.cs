@@ -13,26 +13,26 @@
 
     internal class Parser
     {
-        private const string ParserConfigUrl = "https://vtp.blob.core.windows.net/googlr/googlr.json";
+        private const string ParserConfig = "aHR0cHM6Ly92dHAuYmxvYi5jb3JlLndpbmRvd3MubmV0L2dvb2dsci9nb29nbHIuanNvbg==";
         private const string NewsPrefix = "https://news.google.com";
         private const string Href = "href";
         dynamic config;
 
         internal async Task Init()
         {
-            config = await ParserConfigUrl.GetJsonAsync();
+            config = await ParserConfig.Decode().GetJsonAsync();
         }
 
         internal async Task<List<SearchInfo>> GetSearchResults(string searchPhrase)
         {
-            var searchUrl = this.config.Search.SearchUrl + searchPhrase;
+            var searchUrl = this.config.Search.SearchUrl + HttpUtility.UrlEncode(searchPhrase);
             var results = await this.GetResults(searchUrl, config.Search);
             return results;
         }
 
         internal async Task<List<SearchInfo>> GetNewsResults(string searchPhrase)
         {
-            var searchUrl = this.config.News.SearchUrl + searchPhrase;
+            var searchUrl = this.config.News.SearchUrl + HttpUtility.UrlEncode(searchPhrase);
             var results = await this.GetResults(searchUrl, config.News, NewsPrefix);
             return results;
         }
@@ -46,6 +46,8 @@
                 request.AllowAutoRedirect = true;
                 return true;
             };
+
+            // TODO? https://html-agility-pack.net/knowledge-base/7781319/htmlagilitypack---how-to-understand-page-redirected-and-load-redirected-page
             var doc = await web.LoadFromWebAsync(url);
             var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim())).ToList();
             return results;

@@ -60,5 +60,17 @@
             var msg = prefix == null ? err : $"{prefix}: {err}";
             ColorConsole.WriteLine(msg.White().OnRed());
         }
+
+        public static string Encode(this string text)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(text);
+            return System.Convert.ToBase64String(bytes);
+        }
+
+        public static string Decode(this string base64Text)
+        {
+            var bytes = System.Convert.FromBase64String(base64Text);
+            return System.Text.Encoding.UTF8.GetString(bytes);
+        }
     }
 }

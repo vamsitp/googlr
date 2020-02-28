@@ -30,8 +30,8 @@
                 new[]
                 {
                     "--------------------------------------------------------------".Green(),
-                    "\nEnter the ", "search-phrase".Green(), " for general Search",
-                    "\nEnter ", "/".Green(), " followed by the ", "search-phrase".Green(), " for News-search",
+                    "\nEnter the ", "search-phrase".Green(), " for general Search", " (", "e.g. \"".Green(), "cosmos db", "\"".Green(), " site:".Green(), "stackoverflow.com)",
+                    "\nEnter ", "/".Green(), " followed by the ", "search-phrase".Green(), " for News-search", " (", "e.g. ".Green(), "/".Green(), "microsoft azure)",
                     "\nEnter the ", "index".Green(), " to open the corresponding link",
                     "\nEnter ", "c".Green(), " to clear the console",
                     "\nEnter ", "q".Green(), " to quit",
@@ -137,7 +137,7 @@
                 {
                     var batch = results.Skip(i * Batchsize).Take(Batchsize);
                     index = Iterate(index, batch);
-                    Console.WriteLine("\nContinue...");
+                    ColorConsole.WriteLine("\n cont", "...".Green());
 
                     var input = Console.ReadLine();
                     if (!string.IsNullOrWhiteSpace(input))
@@ -158,9 +158,11 @@
             foreach (var result in batch)
             {
                 index++;
-                ColorConsole.WriteLine("\n", index.ToString().PadLeft(3).Green(), ". ", result.Title.Black().OnWhite());
-                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.Link.Blue());
-                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.Time.White().OnGreen(), string.IsNullOrWhiteSpace(result.Time) ? string.Empty : Space, result.Summary);
+                ColorConsole.WriteLine("\n", index.ToString().PadLeft(3).Green(), ". ", $" {result.Title} ".Black().OnWhite());
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), result.Link.Split('?').FirstOrDefault().Green());
+
+                var pad = string.IsNullOrWhiteSpace(result.Time) ? string.Empty : Space;
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), $"{pad}{result.Time}{pad}".White().OnDarkGreen(), pad, result.Summary);
             }
 
             return index;
