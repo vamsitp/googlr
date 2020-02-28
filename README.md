@@ -6,7 +6,9 @@ Cmd-line Google search for Windows! (Inspired from [Googler for Linux](https://g
 > **USAGE**: 
 
 **`googlr`**
-   > [Common search techniques](https://support.google.com/websearch/answer/2466433)
+
+  ![Screenshot](Screenshot.png)
+  > [Common search techniques](https://support.google.com/websearch/answer/2466433)
 
 - Enter the `search-phrase` for general Search (e.g. **`"cosmos db" site:stackoverflow.com`**)
 - Enter `/` followed by the `search-phrase` for News-search (e.g. **`/microsoft azure`**)
