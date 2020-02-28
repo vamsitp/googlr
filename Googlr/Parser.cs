@@ -39,17 +39,28 @@
 
         internal async Task<List<string>> GetSummary(string url)
         {
-            var web = new HtmlWeb();
-            web.PreRequest = request =>
-            {
-                // request.MaximumAutomaticRedirections = 1;
-                request.AllowAutoRedirect = true;
-                return true;
-            };
+            var web = new HtmlWeb(); // { CaptureRedirect = true };
+            //web.PreRequest = request =>
+            //{
+            //    request.MaximumAutomaticRedirections = 2;
+            //    request.AllowAutoRedirect = true;
+            //    request.Timeout = 15000;
+            //    return true;
+            //};
 
-            // TODO? https://html-agility-pack.net/knowledge-base/7781319/htmlagilitypack---how-to-understand-page-redirected-and-load-redirected-page
             var doc = await web.LoadFromWebAsync(url);
             var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim())).ToList();
+            if (results == null)
+            {
+                var redirects = doc.DocumentNode.SelectNodes("//*[contains(text(), 'Opening')]/a");
+                url = redirects?.FirstOrDefault()?.GetAttributeValue(Href, string.Empty);
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    doc = await web.LoadFromWebAsync(url);
+                    results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim().Replace("\n", Utils.Space))).ToList();
+                }
+            }
+
             return results;
         }
 

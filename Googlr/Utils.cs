@@ -1,6 +1,7 @@
 ﻿namespace Googlr
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.CompilerServices;
@@ -14,6 +15,8 @@
 
     public static class Utils
     {
+        public const string Space = " ";
+
         public static string UserName
         {
             get
@@ -71,6 +74,32 @@
         {
             var bytes = System.Convert.FromBase64String(base64Text);
             return System.Text.Encoding.UTF8.GetString(bytes);
+        }
+
+        // Credit: https://stackoverflow.com/a/29689349
+        public static IEnumerable<string> ToWrappedLines(this string text, int maxWidth = 150, int leftPad = 5)
+        {
+            var words = text.Split(' ');
+            var lines = words.Skip(1).Aggregate(words.Take(1).ToList(), (l, w) =>
+            {
+                if (l.Last().Length + w.Length >= maxWidth)
+                {
+                    l.Add(w);
+                }
+                else
+                {
+                    l[l.Count - 1] += Space + w;
+                }
+
+                return l;
+            });
+
+            return lines.Select(l => string.Empty.PadLeft(leftPad) + l);
+        }
+
+        public static string ToWrappedText(this string text, int maxWidth = 150, int leftPad = 5, char wrapDelimiter = '\n')
+        {
+            return string.Join(wrapDelimiter, text.ToWrappedLines(maxWidth, leftPad));
         }
     }
 }

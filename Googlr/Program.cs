@@ -11,10 +11,12 @@
     internal class Program
     {
         private const int Batchsize = 10;
-        private const string Space = " ";
+        private const int RightPad = 10;
 
         private static readonly char[] Separators = new[] { '/', '-' };
         private static string continuationkey = null;
+
+        private static int MaxWidth => Console.WindowWidth - RightPad;
 
         public static async Task Main(string[] args)
         {
@@ -88,15 +90,16 @@
                         }
                         else
                         {
-                            var indexSearch = searchTerm.Replace(Space, ".");
+                            var indexSearch = searchTerm.Replace(Utils.Space, ".");
                             if (int.TryParse(indexSearch, out var index)) // Index
                             {
                                 var paras = await parser.GetSummary(results[index - 1].Link);
                                 if (paras != null)
                                 {
+                                    ColorConsole.WriteLine("\n", index.ToString().PadLeft(3).Green(), ". ", $" {results[index - 1].Title} ".Black().OnWhite());
                                     foreach (var para in paras)
                                     {
-                                        ColorConsole.WriteLine("\n", string.Empty.PadLeft(5), para);
+                                        ColorConsole.WriteLine("\n", para.ToWrappedText(MaxWidth));
                                     }
 
                                     ColorConsole.Write("\n", string.Empty.PadLeft(5), "Press ".Green(), "o", " to open the link".Green(), ": ");
@@ -161,8 +164,8 @@
                 ColorConsole.WriteLine("\n", index.ToString().PadLeft(3).Green(), ". ", $" {result.Title} ".Black().OnWhite());
                 ColorConsole.WriteLine(string.Empty.PadLeft(5), result.Link.Split('?').FirstOrDefault().Green());
 
-                var pad = string.IsNullOrWhiteSpace(result.Time) ? string.Empty : Space;
-                ColorConsole.WriteLine(string.Empty.PadLeft(5), $"{pad}{result.Time}{pad}".White().OnDarkGreen(), pad, result.Summary);
+                var pad = string.IsNullOrWhiteSpace(result.Time) ? string.Empty : Utils.Space;
+                ColorConsole.WriteLine(string.Empty.PadLeft(5), $"{pad}{result.Time}{pad}".White().OnDarkGreen(), pad, result.Summary.ToWrappedText(MaxWidth).Trim());
             }
 
             return index;
