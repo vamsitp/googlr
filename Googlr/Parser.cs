@@ -1,5 +1,6 @@
 ﻿namespace Googlr
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -13,7 +14,7 @@
     internal class Parser
     {
         private const string ParserConfigUrl = "https://vtp.blob.core.windows.net/googlr/googlr.json";
-        private const string NewsPrefix = "https://news.google.com/";
+        private const string NewsPrefix = "https://news.google.com";
         private const string Href = "href";
         dynamic config;
 
@@ -41,12 +42,12 @@
             var web = new HtmlWeb();
             web.PreRequest = request =>
             {
+                // request.MaximumAutomaticRedirections = 1;
                 request.AllowAutoRedirect = true;
-                request.MaximumAutomaticRedirections = 2;
                 return true;
             };
             var doc = await web.LoadFromWebAsync(url);
-            var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(" ")?.Length >= 10).Select(p => p.InnerText?.Trim()).ToList();
+            var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim())).ToList();
             return results;
         }
 
@@ -74,7 +75,7 @@
                 {
                     results.Add(new SearchInfo
                     {
-                        Link = linkPrefix + (title?.GetAttributeValue(Href, string.Empty) ?? string.Empty),
+                        Link = linkPrefix + (title?.GetAttributeValue(Href, string.Empty) ?? string.Empty)?.TrimStart('.'),
                         Title = string.IsNullOrWhiteSpace(title?.InnerText) ? string.Empty : HttpUtility.HtmlDecode(title?.InnerText.Trim()),
                         Summary = string.IsNullOrWhiteSpace(summary) ? string.Empty : HttpUtility.HtmlDecode(summary.Trim()),
                         Time = time ?? string.Empty
