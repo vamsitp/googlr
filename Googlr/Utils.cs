@@ -16,6 +16,7 @@
     public static class Utils
     {
         public const string Space = " ";
+        public const string ErrorPrefix = "err:";
 
         public static string UserName
         {

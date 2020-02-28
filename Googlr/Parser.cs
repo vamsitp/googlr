@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using System.Web;
     using System.Xml.XPath;
-
+    using ColoredConsole;
     using Flurl.Http;
 
     using HtmlAgilityPack;
@@ -39,29 +39,36 @@
 
         internal async Task<List<string>> GetSummary(string url)
         {
-            var web = new HtmlWeb(); // { CaptureRedirect = true };
-            //web.PreRequest = request =>
-            //{
-            //    request.MaximumAutomaticRedirections = 2;
-            //    request.AllowAutoRedirect = true;
-            //    request.Timeout = 15000;
-            //    return true;
-            //};
-
-            var doc = await web.LoadFromWebAsync(url);
-            var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim())).ToList();
-            if (results == null)
+            try
             {
-                var redirects = doc.DocumentNode.SelectNodes("//*[contains(text(), 'Opening')]/a");
-                url = redirects?.FirstOrDefault()?.GetAttributeValue(Href, string.Empty);
-                if (!string.IsNullOrWhiteSpace(url))
-                {
-                    doc = await web.LoadFromWebAsync(url);
-                    results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim().Replace("\n", Utils.Space))).ToList();
-                }
-            }
+                var web = new HtmlWeb(); // { CaptureRedirect = true };
+                                         //web.PreRequest = request =>
+                                         //{
+                                         //    request.MaximumAutomaticRedirections = 2;
+                                         //    request.AllowAutoRedirect = true;
+                                         //    request.Timeout = 15000;
+                                         //    return true;
+                                         //};
 
-            return results;
+                var doc = await web.LoadFromWebAsync(url);
+                var results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim())).ToList();
+                if (results == null)
+                {
+                    var redirects = doc.DocumentNode.SelectNodes("//*[contains(text(), 'Opening')]/a");
+                    url = redirects?.FirstOrDefault()?.GetAttributeValue(Href, string.Empty);
+                    if (!string.IsNullOrWhiteSpace(url))
+                    {
+                        doc = await web.LoadFromWebAsync(url);
+                        results = doc.DocumentNode.SelectNodes("//p")?.Where(p => p.InnerText?.Trim()?.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)?.Length >= 10).Select(p => HttpUtility.HtmlDecode(p.InnerText?.Trim().Replace("\n", Utils.Space))).ToList();
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                return new List<string> { $"{Utils.ErrorPrefix}{ex.Message} ({ex?.InnerException?.Message})" };
+            }
         }
 
         private async Task<List<SearchInfo>> GetResults(string searchUrl, dynamic config, string linkPrefix = "")

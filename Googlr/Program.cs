@@ -99,7 +99,14 @@
                                     ColorConsole.WriteLine("\n", index.ToString().PadLeft(3).Green(), ". ", $" {results[index - 1].Title} ".Black().OnWhite());
                                     foreach (var para in paras)
                                     {
-                                        ColorConsole.WriteLine("\n", para.ToWrappedText(MaxWidth));
+                                        if (para.StartsWith(Utils.ErrorPrefix))
+                                        {
+                                            ColorConsole.WriteLine("\n", string.Empty.PadLeft(5), $" {para.Replace(Utils.ErrorPrefix, string.Empty)} ".White().OnRed());
+                                        }
+                                        else
+                                        {
+                                            ColorConsole.WriteLine("\n", para.ToWrappedText(MaxWidth));
+                                        }
                                     }
 
                                     ColorConsole.Write("\n", string.Empty.PadLeft(5), "Press ".Green(), "o", " to open the link".Green(), ": ");
