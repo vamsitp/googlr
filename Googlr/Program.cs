@@ -8,6 +8,9 @@
 
     using ColoredConsole;
 
+    using Microsoft.CognitiveServices.Speech;
+    using Microsoft.Extensions.Configuration;
+
     internal class Program
     {
         private const int Batchsize = 10;
@@ -16,10 +19,31 @@
         private static readonly char[] Separators = new[] { '/', '-' };
         private static string continuationkey = null;
 
+        private static SpeechSynthesizer speaker;
+
         private static int MaxWidth => Console.WindowWidth - RightPad;
+
+        private static IConfigurationRoot config = null;
 
         public static async Task Main(string[] args)
         {
+            try
+            {
+                config = Utils.GetConfiguration();
+                if (config != null)
+                {
+                    var speechConfig = SpeechConfig.FromSubscription(config["SpeechSubscriptionKey"], config["SpeechRegion"]);
+                    if (speechConfig != null)
+                    {
+                        speaker = new SpeechSynthesizer(speechConfig);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore
+            }
+
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             await StartAsync();
             ColorConsole.WriteLine("DONE!".White().OnDarkGreen());
@@ -86,7 +110,7 @@
                         if (split.Length > 1) // News
                         {
                             results = await parser.GetNewsResults(searchTerm);
-                            PrintResults(results);
+                            await PrintResults(results);
                         }
                         else
                         {
@@ -124,7 +148,7 @@
                             else // Search
                             {
                                 results = await parser.GetSearchResults(searchTerm.Trim(Separators));
-                                PrintResults(results);
+                                await PrintResults(results);
                             }
                         }
                     }
@@ -137,7 +161,7 @@
             while (true);
         }
 
-        private static void PrintResults(List<SearchInfo> results)
+        private static async Task PrintResults(List<SearchInfo> results)
         {
             // Credit: https://stackoverflow.com/a/51197184
             var index = 0;
@@ -146,7 +170,7 @@
                 for (int i = 0; i < Math.Ceiling((decimal)results.Count / Batchsize); i++)
                 {
                     var batch = results.Skip(i * Batchsize).Take(Batchsize);
-                    index = Iterate(index, batch);
+                    index = await Iterate(index, batch);
                     ColorConsole.WriteLine("\n cont", "...".Green());
 
                     var input = Console.ReadLine();
@@ -159,11 +183,11 @@
             }
             else
             {
-                Iterate(index, results);
+                await Iterate(index, results);
             }
         }
 
-        private static int Iterate(int index, IEnumerable<SearchInfo> batch)
+        private static async Task<int> Iterate(int index, IEnumerable<SearchInfo> batch)
         {
             foreach (var result in batch)
             {
@@ -173,9 +197,28 @@
 
                 var pad = string.IsNullOrWhiteSpace(result.Time) ? string.Empty : Utils.Space;
                 ColorConsole.WriteLine(string.Empty.PadLeft(5), $"{pad}{result.Time}{pad}".White().OnDarkGreen(), pad, result.Summary.ToWrappedText(MaxWidth).Trim());
+                await Speak(result);
             }
 
             return index;
+        }
+
+        private static async Task Speak(SearchInfo result)
+        {
+            try
+            {
+                var lastIndexOfPeriod = result.Summary.Replace("...", string.Empty).LastIndexOf('.') + 1;
+                if (lastIndexOfPeriod <= 0)
+                {
+                    lastIndexOfPeriod = result.Summary.Replace("...", string.Empty).LastIndexOf('?') + 1;
+                }
+
+                await speaker?.SpeakTextAsync((result.Time ?? string.Empty) + ". " + (lastIndexOfPeriod > -1 ? result.Summary.Substring(0, lastIndexOfPeriod) : result.Summary));
+            }
+            catch (Exception)
+            {
+                // Ignore
+            }
         }
     }
 }

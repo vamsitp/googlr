@@ -11,6 +11,8 @@
 
     using Flurl.Http;
 
+    using Microsoft.Extensions.Configuration;
+
     using Newtonsoft.Json.Linq;
 
     public static class Utils
@@ -63,6 +65,19 @@
             var err = await ex.ToFullStringAsync();
             var msg = prefix == null ? err : $"{prefix}: {err}";
             ColorConsole.WriteLine(msg.White().OnRed());
+        }
+
+        public static IConfigurationRoot GetConfiguration()
+        {
+            string env = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
+            var isDev = string.IsNullOrEmpty(env) || env.Equals("development", StringComparison.OrdinalIgnoreCase);
+            var builder = new ConfigurationBuilder();
+            if (isDev)
+            {
+                builder.AddUserSecrets<Program>();
+            }
+
+            return builder.Build();
         }
 
         public static string Encode(this string text)
