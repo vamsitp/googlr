@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
@@ -12,6 +13,7 @@
     using Flurl.Http;
 
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
 
     using Newtonsoft.Json.Linq;
 
@@ -67,17 +69,20 @@
             ColorConsole.WriteLine(msg.White().OnRed());
         }
 
-        public static IConfigurationRoot GetConfiguration()
+        public static IConfigurationRoot GetConfiguration(this IServiceCollection serviceCollection)
         {
-            string env = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
-            var isDev = string.IsNullOrEmpty(env) || env.Equals("development", StringComparison.OrdinalIgnoreCase);
             var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appSettings.json", true, true);
+
+            string env = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
+            var isDev = env?.Equals("development", StringComparison.OrdinalIgnoreCase) == true;
             if (isDev)
             {
-                builder.AddUserSecrets<Program>();
+                builder.AddUserSecrets<Program>(true, true);
             }
 
-            return builder.Build();
+            var config = builder.Build();
+            return config;
         }
 
         public static string Encode(this string text)
@@ -116,6 +121,26 @@
         public static string ToWrappedText(this string text, int maxWidth = 150, int leftPad = 5, char wrapDelimiter = '\n')
         {
             return string.Join(wrapDelimiter, text.ToWrappedLines(maxWidth, leftPad));
+        }
+
+        public static string GetFullPath(this string fileName)
+        {
+            if (fileName == null)
+            {
+                return null;
+            }
+
+            return Path.IsPathRooted(fileName) ? fileName : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), nameof(Googlr), fileName);
+        }
+
+        public static string GetFullPathEx(this string fileName, string extension = "json")
+        {
+            if (fileName.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+            {
+                return fileName.GetFullPath();
+            }
+
+            return $"{fileName}.{extension}".GetFullPath();
         }
     }
 }

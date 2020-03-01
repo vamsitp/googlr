@@ -1,0 +1,9 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Googlr.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ParserConfig" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">aHR0cHM6Ly92dHAuYmxvYi5jb3JlLndpbmRvd3MubmV0L2dvb2dsci9nb29nbHIuanNvbg==</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

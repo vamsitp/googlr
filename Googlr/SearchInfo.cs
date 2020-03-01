@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Googlr
+﻿namespace Googlr
 {
-    class SearchInfo
+    public class SearchInfo
     {
         public string Title { get; set; }
         public string Link { get; set; }

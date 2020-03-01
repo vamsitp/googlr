@@ -7,7 +7,7 @@ Cmd-line Google search for Windows! (Inspired from [Googler for Linux](https://g
 
 **`googlr`**
 
-  ![Screenshot](Screenshot.png)
+  ![Screenshot](https://raw.githubusercontent.com/vamsitp/googlr/master/Screenshot.png)
   > [Common search techniques](https://support.google.com/websearch/answer/2466433)
 
 - Enter the `search-phrase` for general Search (e.g. **`"cosmos db" site:stackoverflow.com`**)

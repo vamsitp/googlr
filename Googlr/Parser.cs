@@ -6,14 +6,14 @@
     using System.Threading.Tasks;
     using System.Web;
     using System.Xml.XPath;
-    using ColoredConsole;
+
     using Flurl.Http;
 
     using HtmlAgilityPack;
 
     internal class Parser
     {
-        private const string ParserConfig = "aHR0cHM6Ly92dHAuYmxvYi5jb3JlLndpbmRvd3MubmV0L2dvb2dsci9nb29nbHIuanNvbg==";
+        private readonly static string ParserConfig = Settings.Default.ParserConfig;
         private const string NewsPrefix = "https://news.google.com";
         private const string Href = "href";
         dynamic config;
@@ -77,29 +77,32 @@
             var doc = await web.LoadFromWebAsync(searchUrl);
             HtmlNodeCollection rows = doc.DocumentNode.SelectNodes(config.Main);
             var results = new List<SearchInfo>();
-            foreach (var row in rows)
+            if (rows?.Count > 0)
             {
-                var title = row.SelectSingleNode(config.Title);
-                var summary = row.SelectSingleNode(config.Summary)?.InnerText ?? string.Empty;
-                var time = string.Empty;
-                try
+                foreach (var row in rows)
                 {
-                    time = row.SelectSingleNode(config.Time)?.InnerText ?? string.Empty;
-                }
-                catch (XPathException)
-                {
-                    //  Do nothing
-                }
-
-                if (title != null)
-                {
-                    results.Add(new SearchInfo
+                    var title = row.SelectSingleNode(config.Title);
+                    var summary = row.SelectSingleNode(config.Summary)?.InnerText ?? string.Empty;
+                    var time = string.Empty;
+                    try
                     {
-                        Link = linkPrefix + (title?.GetAttributeValue(Href, string.Empty) ?? string.Empty)?.TrimStart('.'),
-                        Title = string.IsNullOrWhiteSpace(title?.InnerText) ? string.Empty : HttpUtility.HtmlDecode(title?.InnerText.Trim()),
-                        Summary = string.IsNullOrWhiteSpace(summary) ? string.Empty : HttpUtility.HtmlDecode(summary.Trim()),
-                        Time = time ?? string.Empty
-                    });
+                        time = row.SelectSingleNode(config.Time)?.InnerText ?? string.Empty;
+                    }
+                    catch (XPathException)
+                    {
+                        //  Do nothing
+                    }
+
+                    if (title != null)
+                    {
+                        results.Add(new SearchInfo
+                        {
+                            Link = linkPrefix + (title?.GetAttributeValue(Href, string.Empty) ?? string.Empty)?.TrimStart('.'),
+                            Title = string.IsNullOrWhiteSpace(title?.InnerText) ? string.Empty : HttpUtility.HtmlDecode(title?.InnerText.Trim()),
+                            Summary = string.IsNullOrWhiteSpace(summary) ? string.Empty : HttpUtility.HtmlDecode(summary.Trim()),
+                            Time = time ?? string.Empty
+                        });
+                    }
                 }
             }
 
