@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Platforms>x64</Platforms>
     <LangVersion>preview</LangVersion>
     <PackAsTool>true</PackAsTool>
@@ -21,9 +21,9 @@
     <StartupObject>Googlr.Program</StartupObject>
     <ApplicationIcon>Googlr.ico</ApplicationIcon>
     <AssemblyName>Googlr</AssemblyName>
-    <Version>1.0.10</Version>
-    <AssemblyVersion>1.0.10.0</AssemblyVersion>
-    <FileVersion>1.0.10.0</FileVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <Deterministic>false</Deterministic>
     <!--%appdata%\Microsoft\UserSecrets\2a2b7bd0-664b-4167-9f8b-d390b7c31d8c\secrets.json-->
@@ -42,14 +42,15 @@
 
   <ItemGroup>
     <PackageReference Include="ColoredConsole" Version="1.0.0" />
-    <PackageReference Include="Flurl.Http" Version="2.4.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.12.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    <PackageReference Include="System.Interactive.Async" Version="4.1.1" />
+    <PackageReference Include="Flurl.Http" Version="3.0.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.14.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="NuGet.Protocol" Version="5.8.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 

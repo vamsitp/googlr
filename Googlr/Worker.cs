@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -13,12 +14,16 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
 
+    using NuGet.Common;
+    using NuGet.Protocol;
+    using NuGet.Protocol.Core.Types;
+
     public class Worker : BackgroundService
     {
         private const int Batchsize = 10;
 
         private const int RightPad = 10;
-
+        private const string Name = nameof(Googlr);
         private static readonly char[] Separators = new[] { '/', '-' };
 
         private readonly ILogger<Worker> logger;
@@ -40,6 +45,8 @@
             this.appSettings = config?.GetSection("appSettings");
             this.speaker = speaker;
         }
+
+        private Version Version => Assembly.GetEntryAssembly().GetName().Version;
 
         protected override async Task ExecuteAsync(CancellationToken stopToken)
         {
@@ -94,6 +101,10 @@
                 else if (key.Equals("c", StringComparison.OrdinalIgnoreCase) || key.Equals("cls", StringComparison.OrdinalIgnoreCase) || key.Equals("clear", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.Clear();
+                }
+                else if (key.Equals("+") || key.Equals("update", StringComparison.OrdinalIgnoreCase))
+                {
+                    await this.UpdateTool(stopToken);
                 }
                 else
                 {
@@ -181,8 +192,47 @@
                     "\nEnter the ", "index".Green(), " to open the corresponding link",
                     "\nEnter ", "c".Green(), " to clear the console",
                     "\nEnter ", "q".Green(), " to quit",
+                    "\nEnter ", "+".Green(), " to update Googlr to latest version",
                     "\nEnter ", "?".Green(), " to print this help"
                 });
+        }
+
+        private async Task<bool> UpdateTool(CancellationToken cancellationToken)
+        {
+            var check = await this.CheckForUpdates(cancellationToken);
+            if (check)
+            {
+                Parallel.ForEach(
+                    new[]
+                    {
+                        (cmd: "cmd", args: $"/c \"dotnet tool update -g --no-cache --ignore-failed-sources {Name.ToLowerInvariant()}\" & {Name.ToLowerInvariant()}", hide: false),
+                        (cmd: "taskkill", args: $"/im {Name.ToLowerInvariant()}.exe /f", hide: true),
+                    },
+                    task => Process.Start(new ProcessStartInfo { FileName = task.cmd, Arguments = task.args, CreateNoWindow = task.hide, UseShellExecute = !task.hide }));
+            }
+
+            return check;
+        }
+
+        private async Task<bool> CheckForUpdates(CancellationToken cancellationToken)
+        {
+            ColorConsole.WriteLine("\nChecking for updates", "...".Cyan());
+            var update = false;
+            var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
+            var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
+            var version = (await resource.GetAllVersionsAsync(Name, new SourceCacheContext(), NullLogger.Instance, cancellationToken)).OrderByDescending(v => v.Version).FirstOrDefault();
+            if (version.Version > this.Version)
+            {
+                ColorConsole.WriteLine($"Update available: ", $"{version}".Cyan());
+                update = true;
+            }
+            else
+            {
+                ColorConsole.WriteLine($"You are on the latest version: ", $"{version}".Cyan());
+            }
+
+            ColorConsole.WriteLine("-------------------------------------------------------".Cyan());
+            return update;
         }
 
         private async Task PrintResults(List<SearchInfo> results, CancellationToken stopToken)

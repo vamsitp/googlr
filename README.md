@@ -15,11 +15,12 @@ Cmd-line Google search for Windows! (Inspired from [Googler for Linux](https://g
 - Enter the `index` to open the corresponding link (in default browser)
 - Enter `c` to clear the console
 - Enter `q` to quit
+- Enter `+` to update to the latest version
 - Enter `?` to print this help
 
 ---
 
-> **PRE-REQ**: [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet-core/3.0)
+> **PRE-REQ**: [.NET Core 5.0 SDK](https://dotnet.microsoft.com/download/dotnet-core/5.0)
 ```batch
 # Install from nuget.org
 dotnet tool install -g googlr
