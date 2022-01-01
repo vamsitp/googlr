@@ -20,7 +20,7 @@ Cmd-line Google search for Windows! (Inspired from [Googler for Linux](https://g
 
 ---
 
-> **PRE-REQ**: [.NET Core 5.0 SDK](https://dotnet.microsoft.com/download/dotnet-core/5.0)
+> **PRE-REQ**: [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0)
 ```batch
 # Install from nuget.org
 dotnet tool install -g googlr
